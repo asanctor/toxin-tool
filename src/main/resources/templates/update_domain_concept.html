@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header :: manage-dm-header">
+</head>
+<body>
+    <nav class="navbar navbar-inverse fixed-top" style="border-radius: 1px; color: white; white-space: nowrap; text-align: center; height: 5em;">
+        <a th:href = "@{/}" style="height: 100%;"><img th:src="@{/media/VUB-logo.png}" class="d-inline-block" alt="" style="height: 80%; display: inline-block; float: left; margin-left: 1em; margin-top: 0.35%;"></a>
+        <ul style=" font-size: x-large; padding-top: 0.5%;" class="nav navbar-nav">
+            <li><a th:href = "@{/}">Home</a></li>
+        </ul>
+        <h2 style="text-align: center;">Manage Domain Concept: [(${domainConcept.name})]</h2>
+    </nav>
+    <!-- Blockly Factory Tab: TODO change to bootstrap row and cols -->
+    <table id="blockFactoryContent">
+        <tr width="100%" height="10%">
+            <td width="50%" height="5%" style="display: table-column">
+                <table>
+                    <tr id="blockLibrary">
+                        <td id="blockLibraryContainer">
+            <span>
+              <div class="dropdown">
+                <button id="button_blockLib">Block Library</button>
+                <div id="dropdownDiv_blockLib" class="dropdown-content">
+                  <a id="createNewBlockButton">Create New Block</a>
+                </div>
+              </div>
+              <select id="blockLibraryDropdown" style="display:none">
+              </select>
+            </span>
+                        </td>
+                        <td id="blockLibraryControls">
+                            <button id="saveToBlockLibraryButton" title="Save block to Block Library.">
+                                Save "block_type"
+                            </button>
+                            <button id="removeBlockFromLibraryButton" title="Remove block from Block Library.">
+                                Delete "block_type"
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td height="5%">
+                <table id="blockFactoryPreview">
+                    <tr>
+                        <td id="previewContainer">
+                            <h3>Preview:
+                                <select id="direction">
+                                    <option value="ltr">LTR</option>
+                                    <option value="rtl">RTL</option>
+                                </select>
+                            </h3>
+                        </td>
+                        <td id="buttonContainer" style="display: none">
+                            <button id="linkButton" title="Save and link to blocks.">
+                                <img src="../media/link.png" height="21" width="21">
+                            </button>
+                            <button id="clearBlockLibraryButton" title="Clear Block Library.">
+                                <span>Clear Library</span>
+                            </button>
+                            <label for="files" class="buttonStyle">
+                                <span class=>Import Block Library</span>
+                            </label>
+                            <input id="files" type="file" name="files"
+                                   accept="application/xml">
+                            <button id="localSaveButton" title="Save block library XML to a local file.">
+                                <span>Download Block Library</span>
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr height="80%">
+            <td id="blocklyWorkspaceContainer">
+                <div id="blockly"></div>
+                <div id="blocklyMask"></div>
+            </td>
+            <td width="50%">
+                <table id="blocklyPreviewContainer">
+                    <tr>
+                        <td height="30%">
+                            <div id="preview"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td height="60%" th:object="${domainConcept}">
+
+                            <button type="submit" id="saveDM" class="btn btn-primary">Save Domain Concept</button>
+                            <h3>Block Definition:
+                                <!-- TODO(#1268): Separate concerns of format and editable.
+                                  -               Add "Editable" state toggle button? -->
+                                <select id="format" style="display: none">
+                                    <option value="JSON" selected>JSON</option>
+                                    <option value="JavaScript">JavaScript</option>
+                                </select>
+                            </h3>
+                            <pre id="languagePre" class="prettyprint lang-js" style="display: none"></pre>
+                            <textarea id="languageTA" style="display: none"></textarea>
+                            <input id="idDM" type="hidden" th:field="*{id}" />
+                            <input id="nameDM" type="hidden" th:field="*{name}">
+                            <input id="typeDM" type="hidden" th:field="*{type}">
+                            <input id="urlDM" type="hidden" th:field="*{url}">
+                            <textarea id="rawXML" th:field="*{XML}" style="height: 300px; width: 100%"></textarea>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div id="snackbar" style="visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff; text-align: center; border-radius: 2px; padding: 16px; position: fixed;  z-index: 1;  left: 50%;  bottom: 30px; font-size: 17px;">Domain Concept Saved!</div>
+
+
+    <div id="modalShadow"></div>
+
+    <script th:inline="javascript">
+        var trick = true; //ugly trick
+        let name = [[${domainConcept.name}]];
+        let existingConceptsList = [[${blockNames}]]; //=> not working for some reason...
+        console.log(existingConceptsList);
+        let conceptsArray = [];
+        for(let j = 0; j < existingConceptsList.length; j++){
+            conceptsArray.push([existingConceptsList[j], existingConceptsList[j]]);
+        }
+        let uniq = conceptsArray.reduce(function(a,b){
+            if (a.indexOf(b) < 0 ) a.push(b);
+            return a;
+        },[]).sort();
+        console.log(conceptsArray);
+
+        Blockly.Blocks['DOMAINCONCEPT'] = {
+            validate: function(newValue) {
+                this.getSourceBlock().updateConnections(newValue, this.name);
+                this.disabled = true;
+                return newValue;
+            },
+            init: function() {
+                this.jsonInit({
+                    "type": "DOMAINCONCEPT",
+                    "message0": "Domain Concept %1 Name: %2 -  Abbrev.: %3 %4 Description: %5 %6 Is subconcept of: %7 %8 Properties %9 Composed of %10",
+                    "args0": [{ "type": "input_dummy" },
+                        { "type": "field_input", "name": "DM_name", "text": name },
+                        { "type": "field_input", "name": "DM_abbrev", "text": "T405" },
+                        { "type": "input_dummy" },
+                        { "type": "field_input", "name": "DM_description", "text": "some description" },
+                        { "type": "input_dummy" },
+                        { "type": "field_dropdown", "name": "DM_concepts", "options": [ [ "Report", "Report" ], [ "Component", "Component" ] ] },
+                        { "type": "input_dummy" },
+                        { "type": "input_statement", "name": "PROPERTIES" },
+                        { "type": "field_dropdown", "name": "DM_compositions", "options":  conceptsArray  } ],
+                    "colour": 230,
+                    "tooltip": "",
+                    "helpUrl": ""
+                });
+                this.getField("DM_compositions").setValidator(this.validate);
+
+                //this.appendDummyInput()
+                // Pass the field constructor the options list, the validator, and the name.
+                //        .appendField(new Blockly.FieldDropdown(options, this.validate), 'MODE');
+                //this.setCommentText("hello");
+            },
+            updateConnections: function(newValue, name) {
+                //UGLY TRICK BECAUSE COULD NOT FIND BETTER WAY WITH BLOCKLY
+                //Parse XML to add the extra field added by user using DM_composition
+                if(trick){
+                    let parser = new DOMParser();
+                    let xmlDoc = parser.parseFromString(BlockFactory.STARTER_BLOCK_XML_TEXT,"text/xml");
+                    let savedBlock = xmlDoc.children[0].children[0];
+                    let numberOfFields = savedBlock.childElementCount;
+                    let positionDM_compositions = 4;
+
+                    for(let i = positionDM_compositions; i < numberOfFields; i++){
+                        let element = savedBlock.children[i].childNodes[0].nodeValue;
+                        let attributeName = savedBlock.children[i].getAttribute("name");
+                        let DM_compositionsName = savedBlock.children[4].childNodes[0].nodeValue;
+                        if(attributeName != "DM_compositions" && attributeName != "PROPERTIES" && element != DM_compositionsName){ //then it is an extra field the user added
+                            let options = [ [ element, element ], ["remove", "REMOVE"] ];
+                            this.appendDummyInput(element).appendField(new Blockly.FieldDropdown(options, this.validate), element);
+                        }
+                    }
+                    /* not working ://
+                    let savedBlock = BlockFactory.mainWorkspace.getAllBlocks()[0];
+                    let positionDM_compositions = 6;
+                    for(let i = positionDM_compositions; i < savedBlock.inputList.length; i++){
+                        let element = savedBlock.inputList[i].name;
+                        let options = [ [ element, element ], ["remove", "REMOVE"] ];
+                        this.appendDummyInput(element).appendField(new Blockly.FieldDropdown(options, this.validate), element);
+
+                    }*/
+
+                    trick = false; //should be done only once
+                }
+
+                //-------------------------------------------------------------------------------
+                console.log("this is name:" + name);
+                if (newValue == 'REMOVE') {
+                    this.removeInput(name, /* no error */ true);
+                } else if(newValue != 'choose concept' && name === "DM_compositions"){
+                    let options = [ [ newValue, newValue ], ["remove", "REMOVE"] ];
+                    this.appendDummyInput(newValue).appendField(new Blockly.FieldDropdown(options, this.validate), newValue);
+                }
+            }
+        };
+
+        Blockly.Blocks['PROPERTY'] = {
+            init: function() {
+                this.jsonInit({
+                    "type": "PROPERTY",
+                    "message0": "Property %1 Name: %2 %3 Value Type: %4 %5 Default Value: %6",
+                    "args0": [{ "type": "input_dummy" },
+                        {"type": "field_input", "name": "P_name", "text": "P1" },
+                        { "type": "input_dummy" },
+                        {"type": "field_dropdown", "name": "P_type", "options": [ [ "text", "field_input" ], [ "number", "field_number" ], [ "checkbox", "field_checkbox" ], [ "angle", "field_angle" ], [ "colour", "field_colour" ], [ "date", "field_date" ] ] },
+                        { "type": "input_dummy" },
+                        { "type": "field_input", "name": "P_value", "text": "" } ],
+                    "previousStatement": ["PROPERTY", "DOMAINCONCEPT"],
+                    "nextStatement": ["PROPERTY"],
+                    "colour": 300,
+                    "tooltip": "",
+                    "helpUrl": ""
+                });
+            }
+        };
+
+        Blockly.Blocks['YEARPROPERTY'] = {
+            init: function() {
+                this.jsonInit({
+                    "type": "YEARPROPERTY",
+                    "message0": "Year Property %1 Name: %2 %3 Value Type: %4 %5 Default Value: %6",
+                    "args0": [{ "type": "input_dummy" },
+                        {"type": "field_input", "name": "P_name", "text": "year" },
+                        {"type": "input_dummy" },
+                        {"type": "field_dropdown", "name": "P_type", "options": [ [ "text", "field_input" ], [ "number", "field_number" ], [ "checkbox", "field_checkbox" ], [ "angle", "field_angle" ], [ "colour", "field_colour" ], [ "date", "field_date" ] ] },
+                        {"type": "input_dummy" },
+                        {"type": "field_input", "name": "P_value", "text": "2020" } ],
+                    "previousStatement": ["PROPERTY", "DOMAINCONCEPT"],
+                    "nextStatement": ["PROPERTY"],
+                    "colour": 300,
+                    "tooltip": "",
+                    "helpUrl": ""
+                });
+                this.getField("P_type").setValue("field_number");
+            }
+        };
+    </script>
+
+    <xml id="blockfactory_toolbox" class="toolbox">
+        <category name="Custom Properties">
+            <block type="PROPERTY"></block>
+        </category>
+        <category name="Default Properties">
+            <block type="YEARPROPERTY"></block>
+        </category>
+    </xml>
+    <script>
+        var blocklyFactory;
+        var init = function() {
+            //overwrite default starter block with potentially already filled in domain concept block in the form of XML in DB
+            console.log("this is XML" + '[(${domainConcept.script})]');
+            BlockFactory.STARTER_BLOCK_XML_TEXT = '[(${domainConcept.XML})]';
+            blocklyFactory = new AppController();
+            blocklyFactory.init();
+        };
+        window.addEventListener('load', init);
+
+    </script>
+
+</body>
+</html>

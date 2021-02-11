@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <script th:fragment="block" th:inline="javascript">
+        Blockly.Blocks['[(${blockDefinition.type})]'] = {
+            init: function() {
+                this.jsonInit({
+                    "type": "[(${blockDefinition.type})]",
+                    "message0": '[(${blockDefinition.message})]',
+                    [# th:each="attribute: ${blockDefinition.attributes}"]
+                "message[(${attribute.order})]": '[(${attribute.message})] %1',
+                    "args[(${attribute.order})]": [
+                    { "type": "[(${attribute.type})]", "name": "[(${attribute.name})]", "check": [(${attribute.inputType})] [(${attribute.otherAttributes})] }
+                ],
+                    [/]
+                        [# th:if="${blockDefinition.siblingsAsList}" ]
+                "previousStatement": [(${blockDefinition.siblingsAsList})],
+                    "nextStatement": [(${blockDefinition.siblingsAsList})],
+                    [/]
+                        [# th:unless="${blockDefinition.siblingsAsList}" ]
+                "output": [(${blockDefinition.outputType})],
+                    [/]
+                        "colour": [(${blockDefinition.heu})]
+            });
+            }
+        };
+    </script>
+</body>
+</html>

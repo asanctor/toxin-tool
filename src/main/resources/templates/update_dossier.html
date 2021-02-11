@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-contextPath="${pageContext.request.contextPath}/" >
+<head th:replace="header :: manage-header">
+</head>
+<body>
+<nav class="navbar navbar-inverse fixed-top" style="border-radius: 1px; color: white; white-space: nowrap; text-align: center; height: 5em;">
+    <a th:href = "@{/}" style="height: 100%;"><img th:src="@{/media/VUB-logo.png}" class="d-inline-block" alt="" style="height: 80%; display: inline-block; float: left; margin-left: 1em; margin-top: 0.35%;"></a>
+    <ul style=" font-size: x-large; padding-top: 0.5%;" class="nav navbar-nav">
+        <li><a th:href = "@{/}">Home</a></li>
+    </ul>
+    <h2 style="text-align: center;">Manage Dossier: [(${dossier.name})]</h2>
+</nav>
+    <div class="container my-2">
+        <form action="#" th:action="@{/saveDossier}" th:object="${dossier}" method="POST" class="form-horizontal" role="form">
+            <input type="hidden" th:field="*{id}" >
+            <input type="hidden" th:field="*{XML}" >
+            <div class="form-group row">
+                <label for="name" class="control-label col-sm-2">Dossier name: </label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" th:field="*{name}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="url" class="control-label col-sm-2">Dossier url: </label>
+                <div class="col-lg-10">
+                    <input type="text" class="form-control" th:field="*{url}">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-10">
+                    <button type="submit" class="btn btn-primary col-2">Update Dossier</button>
+                </div>
+            </div>
+        </form>
+
+
+
+        <hr>
+        <!--a th:href = "@{/}"> Back to Dossier List</a-->
+    </div>
+
+    <!-- ${reportsAsList} => check manage.java of christophe -->
+    <script th:inline="javascript" >
+        let name = [[${dossier.name}]];
+        let id = [[${dossier.id}]];
+        let url = [[${dossier.url}]];
+        //not sure this is the way to do it :/
+        //but works --\oO/--
+        let reports = [(${T(vub.be.oecd.controller.DossierController).getReportsAsList()})];
+
+
+        Blockly.Blocks['OPINION'] = {
+            init: function() {
+                this.jsonInit({
+                    "type": "OPINION",
+                    "message0": 'Dossier %1',
+                    "args0": [
+                        { "type": "field_input", "name": "ID", "text": name }
+                    ],
+                    "message1": 'URL %1',
+                    "args1": [
+                        { "type": "field_input", "name": "URL", "text": "http://wise10.vub.ac.be/resource/dossier/"+id }
+                    ],
+                    "message2": 'Publication %1',
+                    "args2": [
+                        { "type": "field_input", "name": "PUBLICATION", "text": url }
+                    ],
+                    "message3": "Reports %1",
+                    "args3": [
+                        { "type": "input_statement", "name": "REPORTS", "check": reports }
+                    ],
+                    "colour": 160
+                });
+            }
+        };
+
+
+
+    </script>
+
+    <div class="row">
+        <div id="blocklyDiv" style="height: 800px" class="col-lg-6"></div>
+        <div class="col-lg-6">
+            <form action="#" th:action="@{/updateDossier}" th:object="${dossier}" method="POST">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{name}" />
+                <input type="hidden" th:field="*{url}" />
+                <textarea type="text" id="rawXML" th:field="*{XML}" class="form-control mb-4 col-4" style="height: 20em;"></textarea>
+
+                <button type="submit" class="btn btn-primary col-2">Save Dossier</button>
+            </form>
+            <br/>
+            <div id="rdfArea">
+                <pre>[[${rdf}]]</pre>
+            </div>
+        </div>
+    </div>
+
+    <tr th:each="blockDefinition: ${blockDefinitions}">
+        <script th:replace="block_component :: block"></script>
+    </tr>
+
+    <xml id="toolbox" style="display: none">
+        <category name="Reports" id="blockReport">
+
+        </category>
+        <category name="Components" id="blockChildren">
+
+        </category>
+    </xml>
+
+    <script th:inline="javascript">
+
+        let reportURL = '/blockDefinitionsForReports';
+        let childrenURL = '/blockDefinitionsForChildren';
+        let dmURL = '/blocksFromDomainConcepts';
+        let updateURL = '/updateBlocks';
+
+        let promise1 = new Promise(function(resolve) {
+            $.get(reportURL, [], function(data) {
+                //fill category report
+                document.getElementById("blockReport").innerHTML = data ;
+                resolve(data);
+            });
+        });
+        let promise2 = new Promise(function(resolve) {
+            $.get(childrenURL, [], function(data) {
+                //fill category components
+                document.getElementById("blockChildren").innerHTML = data ;
+                resolve(data);
+            });
+        });
+        let promise3 = new Promise(function(resolve) {
+            $.post(dmURL, [], function(data) {
+                //add scripts to document
+                let scripts = data.scripts;
+                console.log("this is data: " + data);
+                for (let i = 0; i < scripts.length; i++){
+                    let scriptDC = document.createElement('script');
+
+                    console.log(scriptDC);
+
+                    scriptDC.setAttribute('type', 'text/javascript');
+                    let front = "Blockly.Blocks['http://ontologies.vub.be/oecd#"+ data.names[i] + "'] = { init: function() { this.jsonInit(";
+                    let end = "); } };";
+                    scriptDC.innerHTML = front + scripts[i] + end; //surround JSON script with Javascript
+                    //document.getElementsByTagName('head')[0].appendChild(scriptDC);
+                    document.body.appendChild(scriptDC);
+                }
+                resolve(data);
+            });
+        });
+        Promise.all([promise1, promise2, promise3]).then(function(v){
+            console.log(v);
+            //get names of user created blocks to put in reports or components (for now we put them in a separate category)
+            let names = v[2].names;
+            let types = v[2].types;
+            let reportBlockList = document.getElementById("blockReport").innerHTML;
+            let componentBlockList = document.getElementById("blockChildren").innerHTML;
+            let customReports = '';
+            let customComponents = '';
+            for(let i=0; i<names.length; i++){
+                //take third type (which is name) and add it to: document.getElementById("blockReport").innerHTML
+                if(types[i] === "Report"){
+                    customReports = customReports + '<block type="http://ontologies.vub.be/oecd#' + names[i] +'"></block>';
+                } else {
+                    customComponents = customComponents + '<block type="http://ontologies.vub.be/oecd#' + names[i] +'"></block>';
+                }
+
+
+            }
+            console.log(reportBlockList);
+            document.getElementById("blockReport").innerHTML = reportBlockList + customReports;
+            document.getElementById("blockChildren").innerHTML = componentBlockList + customComponents;
+
+            var workspace = Blockly.inject('blocklyDiv',{
+                toolbox: document.getElementById('toolbox'),
+                zoom: { controls: true, startScale: 1.0, maxScale: 3, minScale: 0.3, scaleSpeed: 1.2}});
+
+            var xml = [[${dossier.XML}]];
+            //no idea what this does, code from Christophe => it creates the block from xml data
+            Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(xml), workspace);
+
+            // Add scrollbar support based on https://github.com/google/blockly/issues/110
+            // Code uses symbols tapestry has problems with, find it in util.js
+            setBlocklyScrollBars(workspace);
+
+            function liveUpdate(event) {
+                document.getElementById('rawXML').value = Blockly.Xml.domToPrettyText(Blockly.Xml.workspaceToDom(workspace));
+            }
+            workspace.addChangeListener(liveUpdate);
+
+            //verify this method!!
+            function updateToolboxOnSelect(event) {
+                if (event.type == Blockly.Events.UI) {
+                    if(event.element == 'selected') {
+                        var block = event.newValue;
+                        var blocktype = workspace.blockDB_[block].type;
+
+                        $.ajax({
+                            type: "POST",
+                            contentType: "application/json",
+                            dataType: "json",
+                            url: updateURL,
+                            data: blocktype,
+                            success: function (data, status) {
+                                console.log(data + " and " + status);
+                                // THE SERVER UPDATES THE XML, SO WHEN RESPONSE SUCCESSFUL,
+                                // JUST UPDATE THE TOOLBOX :-) => did not find a way to do this with spring :(
+                                $.get(childrenURL, [], function(data) {
+                                    //fill category components
+                                    document.getElementById("blockChildren").innerHTML = data + customComponents;
+                                    workspace.updateToolbox(document.getElementById('toolbox'));
+                                });
+                            }
+
+                        });
+
+
+
+                    }
+                }
+            };
+
+            workspace.addChangeListener(updateToolboxOnSelect);
+        });
+    </script>
+</body>
+</html>

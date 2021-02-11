@@ -1,0 +1,81 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="header :: home-header">
+</head>
+<body>
+<!--p>Get your greeting <a href="/greeting">here</a></p-->
+<nav class="navbar navbar-inverse fixed-top" style="border-radius: 1px; color: white; white-space: nowrap; text-align: center; height: 5em;">
+    <a th:href = "@{/}" style="height: 100%;"><img th:src="@{/media/VUB-logo.png}" class="d-inline-block" alt="" style="height: 80%; display: inline-block; float: left; margin-left: 1em; margin-top: 0.35%;"></a>
+    <ul style=" font-size: x-large; padding-top: 0.5%;" class="nav navbar-nav">
+        <li><a th:href = "@{/}">Home</a></li>
+    </ul>
+    <h2 style="text-align: center;">TOXIN Knowledge Base Creation Tool</h2>
+</nav>
+<div class="container-fluid" style="width:90%">
+    <div class="row justify-content-md-center">
+        <div class="col-lg-6">
+            <h1>Create new Dossier</h1>
+            <form action="#" th:action="@{/saveDossier}" th:object="${dossier}" method="POST" style="width: 50%">
+                <input type="text" th:field="${dossier.name}" placeholder="dossier 1" class="form-control mb-4 col-4" style="margin-top: 1em">
+                <input type="text" th:field="${dossier.url}" placeholder="http://test.com" class="form-control mb-4 col-4" style="margin-top: 1em">
+
+                <button type="submit" class="btn btn-primary col-2" style="margin-top: 1em">Add Dossier</button>
+            </form>
+            <!--a th:href="@{/showNewDossierForm}" class="btn btn-primary btn-sm"> Add Dossier</a-->
+            <h1 style="margin-top: 5em"> Dossiers</h1>
+            <table class="table table-striped table-responsive">
+                <thread>
+                    <tr style="background-color: lightsteelblue;">
+                        <th>Name</th>
+                        <th>Url</th>
+                        <th>Actions</th>
+                    </tr>
+                </thread>
+                <tbody>
+                <tr th:each="dossier : ${listDossier}">
+                    <td th:text="${dossier.name}"></td>
+                    <td th:text="${dossier.url}"></td>
+                    <td>
+                        <a th:href="@{/showDossierUpdatePage/{id}(id=${dossier.id})}" class="btn btn-primary">Update</a>
+                        <a th:href="@{/deleteDossier/{id}(id=${dossier.id})}" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-lg-6">
+            <h1>Create new Domain Concept</h1>
+            <form action="#" th:action="@{/saveDomainConcept}" th:object="${domainConcept}" method="POST" style="width: 50%">
+                <input type="text" th:field="${domainConcept.name}" placeholder="concept 1" class="form-control mb-4 col-4" style="margin-top: 1em">
+                <input type="text" th:field="${domainConcept.url}" placeholder="http://test.com" class="form-control mb-4 col-4" style="margin-top: 1em">
+
+                <button type="submit" class="btn btn-primary col-2" style="margin-top: 1em">Add Domain Concept</button>
+            </form>
+            <h1 style="margin-top: 5em"> Domain Concepts</h1>
+            <table class="table table-striped table-responsive">
+                <thread>
+                    <tr style="background-color: lightsteelblue;">
+                        <th>Name</th>
+                        <th>Url</th>
+                        <th>Actions</th>
+                    </tr>
+                </thread>
+                <tbody>
+                <tr th:each="domainConcept : ${listDomainConcept}">
+                    <td th:text="${domainConcept.name}"></td>
+                    <td th:text="${domainConcept.url}"></td>
+                    <td>
+                        <a th:href="@{/showDomainConceptUpdatePage/{id}(id=${domainConcept.id})}" class="btn btn-primary">Update</a>
+                        <a th:href="@{/deleteDomainConcept/{id}(id=${domainConcept.id})}" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>

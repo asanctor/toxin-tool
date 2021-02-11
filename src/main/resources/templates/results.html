@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+</head>
+
+<body>
+
+    <tr th:fragment="blockDefinitionsForReportsList" id="results-block-reports" th:each="blockDefinition: ${reportBlocks}">
+        <block th:type="${blockDefinition.type}"></block>
+    </tr>
+
+    <tr th:fragment="blockDefinitionsForChildrenList" id="results-block-children" th:each="blockDefinition: ${childrenBlocks}">
+        <block th:type="${blockDefinition.type}"></block>
+    </tr>
+
+</body>
+</html>
