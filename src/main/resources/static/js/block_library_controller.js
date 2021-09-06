@@ -181,7 +181,7 @@ BlockLibraryController.prototype.saveToBlockLibrary = function() {
    DM["script"] = document.getElementById('languageTA').value;
    DM["xml"] = document.getElementById('rawXML').value;
 
-  let updateDmURL =  '/toxin-tool/updateDomainConcept';
+  let updateDmURL =  '/updateDomainConcept';
 
   //call controller to save DM to database
   $.ajax({

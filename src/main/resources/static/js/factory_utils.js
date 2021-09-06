@@ -225,11 +225,15 @@ FactoryUtils.formatJson_ = function(blockType, rootBlock) {
     //additional compositions (start counting from 6th entry)
     for(let i = 6; i<rootBlock.inputList.length; i++){
         let comp = rootBlock.inputList[i].fieldRow[0].value_;
-        //push name of comp
-        message.push(comp);
-        args.push({type: "input_value", name: comp, check: comp});
-        message.push('%' + args.length);
-        lastInput = rootBlock.inputList[i];
+        //push name of comp except if "none" is selected
+        if(comp == "choose concept"){
+          console.log("do nothing");
+        } else{
+            message.push(comp);
+            args.push({type: "input_value", name: comp, check: comp});
+            message.push('%' + args.length);
+            lastInput = rootBlock.inputList[i];
+        }
     }
 
   // Remove last input if dummy and not empty. => will depend if user added value inputs...

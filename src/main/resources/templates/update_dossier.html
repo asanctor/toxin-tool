@@ -10,7 +10,7 @@
     </ul>
     <h2 style="text-align: center;">Manage Dossier: [(${dossier.name})]</h2>
 </nav>
-    <div class="container my-2">
+    <div class="container my-2" style="display: none">
         <form action="#" th:action="@{/saveDossier}" th:object="${dossier}" method="POST" class="form-horizontal" role="form">
             <input type="hidden" th:field="*{id}" >
             <input type="hidden" th:field="*{XML}" >
@@ -50,6 +50,7 @@
         let reports = [(${T(vub.be.oecd.controller.DossierController).getReportsAsList()})];
 
 
+
         Blockly.Blocks['OPINION'] = {
             init: function() {
                 this.jsonInit({
@@ -84,8 +85,8 @@
         <div class="col-lg-6">
             <form action="#" th:action="@{/updateDossier}" th:object="${dossier}" method="POST">
                 <input type="hidden" th:field="*{id}" />
-                <input type="hidden" th:field="*{name}" />
-                <input type="hidden" th:field="*{url}" />
+                <input type="hidden" th:field="*{name}" id="bName" />
+                <input type="hidden" th:field="*{url}" id="bURL" />
                 <textarea type="text" id="rawXML" th:field="*{XML}" class="form-control mb-4 col-4" style="height: 20em;"></textarea>
 
                 <button type="submit" class="btn btn-primary col-2">Save Dossier</button>
@@ -212,6 +213,9 @@
                                     //fill category components
                                     document.getElementById("blockChildren").innerHTML = data + customComponents;
                                     workspace.updateToolbox(document.getElementById('toolbox'));
+                                    //ugly but needed for eval
+                                    document.getElementById("bURL").value = workspace.getAllBlocks()[0].getFieldValue("PUBLICATION");
+                                    document.getElementById("bName").value  = workspace.getAllBlocks()[0].getFieldValue("ID");
                                 });
                             }
 

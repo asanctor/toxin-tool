@@ -119,15 +119,17 @@
         let name = [[${domainConcept.name}]];
         let existingConceptsList = [[${blockNames}]]; //=> not working for some reason...
         console.log(existingConceptsList);
-        let conceptsArray = [];
-        for(let j = 0; j < existingConceptsList.length; j++){
-            conceptsArray.push([existingConceptsList[j], existingConceptsList[j]]);
-        }
-        let uniq = conceptsArray.reduce(function(a,b){
+        let uniq = existingConceptsList.reduce(function(a,b){
             if (a.indexOf(b) < 0 ) a.push(b);
             return a;
-        },[]).sort();
-        console.log(conceptsArray);
+        },[]).sort(Intl.Collator().compare);
+        let conceptsArray = [];
+        for(let j = 0; j < uniq.length; j++){
+            conceptsArray.push([uniq[j], uniq[j]]);
+        }
+
+        conceptsArray.unshift(['choose concept', 'choose concept']);//indicate when no subconcepts...
+        console.log(uniq);
 
         Blockly.Blocks['DOMAINCONCEPT'] = {
             validate: function(newValue) {
