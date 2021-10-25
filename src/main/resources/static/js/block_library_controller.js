@@ -155,7 +155,7 @@ BlockLibraryController.prototype.saveToBlockLibrary = function() {
   console.log(Blockly.Xml.domToPrettyText(xmlElementPreview));
 
 
-    let type = blockType.replace(" ", "_");
+  let type = blockType.replace(" ", "_");
   document.getElementById('urlDM').text = "http://ontologies.vub.be/oecd#" +  type;
 
   // Save block in database:
@@ -204,9 +204,6 @@ BlockLibraryController.prototype.saveToBlockLibrary = function() {
 
       }
   });
-
-
-
 };
 
 /**

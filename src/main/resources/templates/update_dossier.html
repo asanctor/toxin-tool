@@ -3,13 +3,13 @@
 <head th:replace="header :: manage-header">
 </head>
 <body>
-<nav class="navbar navbar-inverse fixed-top" style="border-radius: 1px; color: white; white-space: nowrap; text-align: center; height: 5em;">
-    <a th:href = "@{/}" style="height: 100%;"><img th:src="@{/media/VUB-logo.png}" class="d-inline-block" alt="" style="height: 80%; display: inline-block; float: left; margin-left: 1em; margin-top: 0.35%;"></a>
-    <ul style=" font-size: x-large; padding-top: 0.5%;" class="nav navbar-nav">
-        <li><a th:href = "@{/}">Home</a></li>
-    </ul>
-    <h2 style="text-align: center;">Manage Dossier: [(${dossier.name})]</h2>
-</nav>
+    <nav class="navbar navbar-inverse fixed-top" style="border-radius: 1px; color: white; white-space: nowrap; text-align: center; height: 5em;">
+        <a th:href = "@{/}" style="height: 100%;"><img th:src="@{/media/VUB-logo.png}" class="d-inline-block" alt="" style="height: 80%; display: inline-block; float: left; margin-left: 1em; margin-top: 0.35%;"></a>
+        <ul style=" font-size: x-large; padding-top: 0.5%;" class="nav navbar-nav">
+            <li><a th:href = "@{/}">Home</a></li>
+        </ul>
+        <h2 style="text-align: center;">Manage Dossier: [(${dossier.name})]</h2>
+    </nav>
     <div class="container my-2" style="display: none">
         <form action="#" th:action="@{/saveDossier}" th:object="${dossier}" method="POST" class="form-horizontal" role="form">
             <input type="hidden" th:field="*{id}" >
@@ -33,12 +33,30 @@
                 </div>
             </div>
         </form>
-
-
-
         <hr>
-        <!--a th:href = "@{/}"> Back to Dossier List</a-->
     </div>
+    <!-- Modal (not used now) -->
+    <div class="modal fade" id="saveStructureModal" tabindex="-1" role="dialog" aria-labelledby="saveStructureModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h3 class="modal-title">Save Block Structure for Later Use</h3>
+                </div>
+                <div class="modal-body">
+                    <label for="structureName">Give name for block structure</label>
+                    <input class="form-control" id="structureName" placeholder="Enter name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="snackbar" style="visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff; text-align: center; border-radius: 2px; padding: 16px; position: fixed;  z-index: 1;  left: 50%;  bottom: 30px; font-size: 17px;">Block Structure Saved!</div>
 
     <!-- ${reportsAsList} => check manage.java of christophe -->
     <script th:inline="javascript" >
@@ -89,7 +107,7 @@
                 <input type="hidden" th:field="*{url}" id="bURL" />
                 <textarea type="text" id="rawXML" th:field="*{XML}" class="form-control mb-4 col-4" style="height: 20em;"></textarea>
 
-                <button type="submit" class="btn btn-primary col-2">Save Dossier</button>
+                <button type="submit" id="saveDossier" class="btn btn-primary col-2">Save Dossier</button>
             </form>
             <br/>
             <div id="rdfArea">
@@ -107,6 +125,9 @@
 
         </category>
         <category name="Components" id="blockChildren">
+
+        </category>
+        <category name="Saved Block Structures" id="savedStructures">
 
         </category>
     </xml>
@@ -168,12 +189,20 @@
                 } else {
                     customComponents = customComponents + '<block type="http://ontologies.vub.be/oecd#' + names[i] +'"></block>';
                 }
-
-
             }
-            console.log(reportBlockList);
+            let savedStructures = /*[[${structures}]]*/ [];
+            let structures = "";
+            //add saved structures
+            for(let j=0; j<savedStructures.length; j++){
+                structures = structures.concat(savedStructures[j].xml);
+            }
+            document.getElementById("savedStructures").innerHTML = structures;
+            console.log(savedStructures);
+
             document.getElementById("blockReport").innerHTML = reportBlockList + customReports;
             document.getElementById("blockChildren").innerHTML = componentBlockList + customComponents;
+
+            registerFirstContextMenuOptions();
 
             var workspace = Blockly.inject('blocklyDiv',{
                 toolbox: document.getElementById('toolbox'),

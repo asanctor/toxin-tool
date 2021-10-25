@@ -17,12 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import vub.be.oecd.model.BlockDefinition;
-import vub.be.oecd.model.DomainConcept;
-import vub.be.oecd.model.Dossier;
-import vub.be.oecd.model.ReportBlockDefinition;
+import vub.be.oecd.model.*;
 import vub.be.oecd.service.DomainConceptService;
 import vub.be.oecd.service.DossierService;
+import vub.be.oecd.service.SavedStructureService;
 import vub.be.oecd.util.OECDVariables;
 
 import javax.xml.transform.Source;
@@ -50,6 +48,9 @@ public class DossierController {
 
     @Autowired
     private DomainConceptService domainConceptService;
+
+    @Autowired
+    private SavedStructureService savedStructureService;
 
     //for the creation of Blockly blocks
     private static org.apache.jena.rdf.model.Model ontology;
@@ -93,6 +94,10 @@ public class DossierController {
         }
         //set dossier as a model attribute to pre-populate the form
         model.addAttribute("dossier", dossier);
+
+        //add saved structure to the model attributes
+        Iterable<SavedStructure> structures = savedStructureService.getAllSavedStructures();
+        model.addAttribute("structures", structures);
 
         //load the ontology
         try{
@@ -410,6 +415,14 @@ public class DossierController {
     public String saveDomainConcept(@ModelAttribute("domainConcept") DomainConcept domainConcept){
         //save concept to database
         domainConceptService.saveDomainConcept(domainConcept);
+        return "redirect:/";
+    }
+
+    @PostMapping("/saveStructure")
+    public String saveStructure(@RequestBody SavedStructure structure){
+        System.out.println(structure);
+        //save structure to database
+        savedStructureService.saveStructure(structure);
         return "redirect:/";
     }
 
